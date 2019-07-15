@@ -16,6 +16,7 @@ php composer.phar require umbrellio/laravel-pg-extensions
 
  - [Extended `Schema::create()`](#extended-table-creation)
  - [Extended `Schema` with GIST/GIN indexes](#create-gist/gin-indexes)
+ - [Add support EXCLUDE USING to `Schema`](#support-exclude-using)
  - [Working with unique indexes](#extended-unique-indexes-creation)
  - [Working with partitions](#partitions)
 
@@ -36,6 +37,22 @@ Schema::create('table', function (Blueprint $table) {
     $table->gist(['column1', 'column2']); 
     $table->gin('column1');
 });
+```
+
+### Support exclude using
+
+```php
+Schema::create('table', function (Blueprint $table) {
+    $table->addColumn('daterange', 'period')->exclude()->gist()->with('&&'); 
+});
+```
+
+Generate this SQL:
+```SQL
+create table "table" (
+    "period" daterange not null,
+    EXCLUDE USIGN GIST (period WITH &&)
+);
 ```
 
 ### Extended unique indexes creation

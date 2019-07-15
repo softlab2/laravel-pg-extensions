@@ -18,7 +18,7 @@ class CreateCompiler
             $grammar->wrapTable($blueprint),
             $commands['like']
                 ? self::compileLike($grammar, $commands['like'])
-                : self::compileColumns($columns)
+                : self::compileColumns(array_merge($columns, self::compileConstraints($blueprint)))
         );
 
         return str_replace('  ', ' ', trim($compiledCommand));
@@ -39,5 +39,22 @@ class CreateCompiler
     private static function compileColumns(array $columns): string
     {
         return implode(', ', $columns);
+    }
+
+    private static function compileConstraints(Blueprint $table): array
+    {
+        return collect($table->getColumns())
+            ->filter(function ($column) {
+                return $column->exclude;
+            })
+            ->map(function ($column) {
+                return sprintf(
+                    'EXCLUDE USING %s (%s WITH %s)',
+                    $column->gist ?? false ? 'GIST' : 'GIN',
+                    $column->name,
+                    $column->with ?? false ? $column->with : '&&'
+                );
+            })
+            ->toArray();
     }
 }

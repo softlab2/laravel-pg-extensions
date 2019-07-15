@@ -4,6 +4,7 @@ namespace Illuminate\Database\Schema {
 
     use Illuminate\Support\Fluent;
     use Umbrellio\Postgres\Schema\Definitions\AttachPartitionDefinition;
+    use Umbrellio\Postgres\Schema\Definitions\ExcludeDefinition;
     use Umbrellio\Postgres\Schema\Definitions\LikeDefinition;
     use Umbrellio\Postgres\Schema\Definitions\UniqueDefinition;
 
@@ -15,6 +16,7 @@ namespace Illuminate\Database\Schema {
      * @method UniqueDefinition uniquePartial($columns, ?string $index = null, ?string $algorithm = null)
      * @method Fluent gin($columns, ?string $name = null)
      * @method Fluent gist($columns, ?string $name = null)
+     * @method ExcludeDefinition exclude()
      */
     class Blueprint
     {
