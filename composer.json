@@ -1,5 +1,6 @@
 {
   "name": "umbrellio/laravel-pg-extensions",
+  "description": "",
   "type": "library",
   "minimum-stability": "stable",
   "authors": [
@@ -10,6 +11,7 @@
   ],
   "require": {
     "php": "^7.2",
+    "doctrine/dbal": "^2.9",
     "laravel/framework": "^5.8"
   },
   "require-dev": {
