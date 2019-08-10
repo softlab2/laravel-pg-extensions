@@ -29,7 +29,7 @@ final class SchemaAlterTableChangeColumnSubscriber implements EventSubscriber
             $event->getColumnDiff()
         );
 
-        $event->addSql($sql->unique()->toArray());
+        $event->addSql($sql->toArray());
     }
 
     public function getSubscribedEvents(): array
@@ -156,31 +156,26 @@ final class SchemaAlterTableChangeColumnSubscriber implements EventSubscriber
         string $oldColumnName,
         Collection $sql
     ): void {
+        $columnDefinition = $column->toArray();
+        $using = $columnDefinition['using'] ?? null;
+
         if (!$columnDiff->hasChanged('type')
             && !$columnDiff->hasChanged('precision')
             && !$columnDiff->hasChanged('scale')
             && !$columnDiff->hasChanged('fixed')
+            && !$using
         ) {
             return;
         }
 
         $type = $column->getType();
 
-        $columnDefinition = $column->toArray();
         $columnDefinition['autoincrement'] = false;
-
-        if ($this->typeChangeBreaksDefaultValue($columnDiff)) {
-            $sql->add(sprintf('ALTER TABLE %s ALTER %s DROP DEFAULT', $quoteName, $oldColumnName));
-        }
 
         $typeName = $type->getSQLDeclaration($columnDefinition, $platform);
 
-        if ($columnDiff->hasChanged('type')) {
-            $using = sprintf('USING %s::%s', $oldColumnName, $typeName);
-
-            if ($columnDefinition['using'] ?? false) {
-                $using = 'USING ' . $columnDefinition['using'];
-            }
+        if ($columnDiff->hasChanged('type') || $using) {
+            $using = $this->compileUsingSQL($oldColumnName, $typeName, $using);
         }
 
         $sql->add(trim(sprintf(
@@ -190,6 +185,15 @@ final class SchemaAlterTableChangeColumnSubscriber implements EventSubscriber
             $typeName,
             $using ?? ''
         )));
+    }
+
+    public function compileUsingSQL(string $columnName, string $type, ?string $using = null): string
+    {
+        if ($using) {
+            return sprintf('USING %s', $using);
+        }
+
+        return sprintf('USING %s::%s', $columnName, $type);
     }
 
     public function getDefaultValueDeclarationSQL(AbstractPlatform $platform, Column $column): string

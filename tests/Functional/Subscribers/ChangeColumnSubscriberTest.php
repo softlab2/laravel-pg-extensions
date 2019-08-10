@@ -86,6 +86,7 @@ class ChangeColumnSubscriberTest extends FunctionalTestCase
         yield $this->dropNotNullCase();
         yield $this->createSequenceCase();
         yield $this->dropDefaultCase();
+        yield $this->simpleUsingCase();
         yield $this->setSimpleDefaultCase();
         yield $this->setExpressionDefaultCase();
         yield $this->changeTypeWithUsingCase();
@@ -181,12 +182,22 @@ class ChangeColumnSubscriberTest extends FunctionalTestCase
         return [
             'some_key',
             function (Blueprint $table, string $column) {
-                $table->integer($column)->change();
+                $table->increments($column)->change();
             },
-            [
-                'ALTER TABLE some_table ALTER some_key DROP DEFAULT',
-                'ALTER TABLE some_table ALTER some_key TYPE INT USING some_key::INT',
-            ],
+            ['ALTER TABLE some_table ALTER some_key TYPE INT USING some_key::INT'],
+        ];
+    }
+
+    private function simpleUsingCase(): array
+    {
+        return [
+            'some_comment',
+            function (Blueprint $table, string $column) {
+                $table->string($column)
+                    ->using(sprintf('("%s")::character varying', $column))
+                    ->change();
+            },
+            ['ALTER TABLE some_table ALTER some_comment TYPE VARCHAR(255) USING ("some_comment")::character varying'],
         ];
     }
 
@@ -228,8 +239,8 @@ class ChangeColumnSubscriberTest extends FunctionalTestCase
                     ->change();
             },
             [
-                'ALTER TABLE some_table ALTER some_integer_default DROP DEFAULT',
                 "ALTER TABLE some_table ALTER some_integer_default TYPE TEXT USING ('[some_exp:' || some_integer_default || ']')::character varying",
+                'ALTER TABLE some_table ALTER some_integer_default DROP DEFAULT',
             ],
         ];
     }

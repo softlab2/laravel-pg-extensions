@@ -21,6 +21,9 @@ namespace Illuminate\Database\Schema {
      * @method ColumnDefinition numeric(string $column, ?int $precision = null, ?int $scale = null)
      * @method ExcludeDefinition exclude($columns, ?string $index = null)
      * @method CheckDefinition check($columns, ?string $index = null)
+     * @method Fluent dropExclude($columns)
+     * @method Fluent dropUniquePartial($columns)
+     * @method Fluent dropCheck($columns)
      */
     class Blueprint
     {
